@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8"/>
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>iframe</h1>
+    <button id="btnSend">Send to iframe</button>
+    <p id="log"></p>
+    <script src="../../dist/Invocation.js"></script>
+    <script src="../../dist/bridge/iframe/IframeBridge.js"></script>
+    <script>
+    var client = new Invocation('iframe-page', {
+      message: function (msg) {
+        log(msg);
+        return Promise.resolve(Math.random());
+      }
+    });
+    client.pipe(new IframeBridge());
+
+    document.getElementById('btnSend').addEventListener('click', function () {
+      // serverId, apiName, arguments
+      client.invoke('mainframe', 'message', 'Hello! This message is from mainframe').then(function (res) {
+        log('mainframe response with ' + res);
+      });
+    }, false);
+
+    function log(msg) {
+      var p = document.createElement('p');
+      p.innerHTML = getTime() + ' ' + msg;
+      document.getElementById('log').appendChild(p);
+    }
+
+    function getTime () {
+      var d = new Date();
+      var m = d.getMinutes();
+      var s = d.getSeconds();
+      return m + ':' + s;
+    }
+
+    </script>
+  </body>
+</html>

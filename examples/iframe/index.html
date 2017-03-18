@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8"/>
+    <title>Demo</title>
+    <style>
+    .frame {
+      float: left;
+      height: 300px;
+      width: 40%;
+      margin: 5px;
+      border: 1px solid gray;
+      overflow: auto;
+    }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <h1>mainframe</h1>
+      <button id="btnSend">Send to iframe</button>
+      <p id="log"></p>
+    </div>
+    <iframe id="iframe-page" class="frame" frameborder="0" src="./iframe.html"></iframe>
+    <script src="../../dist/Invocation.js"></script>
+    <script src="../../dist/bridge/iframe/MainframeBridge.js"></script>
+    <script>
+    var server = new Invocation('mainframe', {
+      message: function (msg) {
+        log(msg);
+        return Promise.resolve(Math.random());
+      }
+    });
+    server.pipe(new MainframeBridge());
+
+    document.getElementById('btnSend').addEventListener('click', function () {
+      // clientId, apiName, arguments
+      server.invoke('iframe-page', 'message', 'Hello! This message is from mainframe').then(function (res) {
+        log('iframe response with ' + res);
+      });
+    }, false);
+
+    function log(msg) {
+      var p = document.createElement('p');
+      p.innerHTML = getTime() + ' ' + msg;
+      document.getElementById('log').appendChild(p);
+    }
+
+    function getTime () {
+      var d = new Date();
+      var m = d.getMinutes();
+      var s = d.getSeconds();
+      return m + ':' + s;
+    }
+    </script>
+  </body>
+</html>

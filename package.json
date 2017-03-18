@@ -4,15 +4,12 @@
   "description": "rmi.js",
   "main": "Invocation.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=development node build/dev-server.js",
-    "build": "cross-env NODE_ENV=production webpack --progress --display-modules --config build/webpack.prod.conf.js && npm run make-resource",
-    "make-resource": "node build/make-resource.js"
   },
   "author": "Duoani <duoani@126.com>",
   "license": "MIT",
   "devDependencies": {
-    "browser-sync": "^2.11.1",
-    "cross-env": "^3.2.3",
-    "rimraf": "^2.5.0"
+    "del": "^2.2.2",
+    "gulp": "^3.9.1",
+    "gulp-umd": "^0.2.0"
   }
 }
