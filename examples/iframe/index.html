@@ -35,7 +35,7 @@
     document.getElementById('btnSend').addEventListener('click', function () {
       // clientId, apiName, arguments
       server.invoke('iframe-page', 'message', 'Hello! This message is from mainframe').then(function (res) {
-        log('iframe response with ' + res);
+        log('iframe response: ' + res);
       });
     }, false);
 

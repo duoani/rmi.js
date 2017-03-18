@@ -4,7 +4,7 @@
   } else if (typeof exports === 'object') {
     module.exports = factory();
   } else {
-    root.Rmi = factory();
+    root.rmi = factory();
   }
 }(this, function() {
 var toStr = Object.prototype.toString;
@@ -42,7 +42,7 @@ function convertStatus (status) {
   case CallbackStatus.OK:
     return CallbackStatus.OK;
 
-  case CallbackStatus.ER OR:
+  case CallbackStatus.ERROR:
     return CallbackStatus.ERROR;
 
   default:

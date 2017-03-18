@@ -13,7 +13,13 @@ gulp.task('build', ['clean'], function () {
       exports: function (file) {
         var name = path.basename(file.path, path.extname(file.path));
         return name;
+      },
+      namespace: function(file) {
+        var name = path.basename(file.path, path.extname(file.path));
+        return name;
       }
     }))
     .pipe(gulp.dest('dist'))
 });
+
+gulp.task('default', ['build']);

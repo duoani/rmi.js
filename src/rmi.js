@@ -33,7 +33,7 @@ function convertStatus (status) {
   case CallbackStatus.OK:
     return CallbackStatus.OK;
 
-  case CallbackStatus.ER OR:
+  case CallbackStatus.ERROR:
     return CallbackStatus.ERROR;
 
   default:
