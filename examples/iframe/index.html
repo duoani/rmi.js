@@ -21,10 +21,10 @@
       <p id="log"></p>
     </div>
     <iframe id="iframe-page" class="frame" frameborder="0" src="./iframe.html"></iframe>
-    <script src="../../dist/Invocation.js"></script>
+    <script src="../../dist/rmi.js"></script>
     <script src="../../dist/bridge/iframe/MainframeBridge.js"></script>
     <script>
-    var server = new Invocation('mainframe', {
+    var server = rmi.create('mainframe', {
       message: function (msg) {
         log(msg);
         return Promise.resolve(Math.random());

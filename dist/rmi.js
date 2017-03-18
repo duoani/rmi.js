@@ -1,3 +1,12 @@
+;(function(root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    define([], factory);
+  } else if (typeof exports === 'object') {
+    module.exports = factory();
+  } else {
+    root.Rmi = factory();
+  }
+}(this, function() {
 var toStr = Object.prototype.toString;
 
 var isObject = function (o) {
@@ -33,7 +42,7 @@ function convertStatus (status) {
   case CallbackStatus.OK:
     return CallbackStatus.OK;
 
-  case CallbackStatus.ERROR:
+  case CallbackStatus.ER OR:
     return CallbackStatus.ERROR;
 
   default:
@@ -225,3 +234,11 @@ Invocation.prototype._onResponse = function (command) {
   }
 };
 
+var rmi = {
+  create: function (id, api) {
+    return new Invocation(id, api);
+  }
+};
+
+return rmi;
+}));

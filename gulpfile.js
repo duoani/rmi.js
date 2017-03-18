@@ -9,6 +9,11 @@ gulp.task('clean', function () {
 
 gulp.task('build', ['clean'], function () {
   return gulp.src('src/**/*.js')
-    .pipe(umd())
+    .pipe(umd({
+      exports: function (file) {
+        var name = path.basename(file.path, path.extname(file.path));
+        return name;
+      }
+    }))
     .pipe(gulp.dest('dist'))
 });

@@ -8,10 +8,10 @@
     <h1>iframe</h1>
     <button id="btnSend">Send to iframe</button>
     <p id="log"></p>
-    <script src="../../dist/Invocation.js"></script>
+    <script src="../../dist/rmi.js"></script>
     <script src="../../dist/bridge/iframe/IframeBridge.js"></script>
     <script>
-    var client = new Invocation('iframe-page', {
+    var client = rmi.create('iframe-page', {
       message: function (msg) {
         log(msg);
         return Promise.resolve(Math.random());
