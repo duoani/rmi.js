@@ -9,11 +9,20 @@ MainframeBridge.prototype.apply = function (req, res) {
   var targetOrigin = this.options.targetOrigin;
   var sourceOrigin = this.options.sourceOrigin;
 
-  req(function (targetId, message) {
-    // The id of iframe element is assumed to be the value of targetId.
-    var iframe = document.querySelector('#' + targetId);
-    if (iframe) {
-      iframe.contentWindow.postMessage(message, targetOrigin);
+  req(function (bridgeConfig, message) {
+    var target = null;
+    if (bridgeConfig.source) {
+      target = bridgeConfig.source;
+    } else if (bridgeConfig.targetId) {
+      // The id of iframe element is assumed to be the value of targetId.
+      var iframe = document.querySelector('#' + bridgeConfig.targetId);
+      if (iframe) {
+        target = iframe.contentWindow;
+      }
+    }
+
+    if (target) {
+      target.postMessage(message, targetOrigin);
     }
   });
 
@@ -37,6 +46,10 @@ MainframeBridge.prototype.apply = function (req, res) {
       return;
     }
 
-    res(command);
+    var bridgeConfig = {
+      source: e.source
+    };
+
+    res(bridgeConfig, command);
   });
 };

@@ -3,13 +3,18 @@ var IframeBridge = function (options) {
     targetOrigin: '*',
     sourceOrigin: null
   }, options);
-}
+};
+
 IframeBridge.prototype.apply = function (req, res) {
   var targetOrigin = this.options.targetOrigin;
   var sourceOrigin = this.options.sourceOrigin;
 
-  req(function (targetId, message) {
-    parent.postMessage(message, targetOrigin);
+  req(function (bridgeConfig, message) {
+    var target = bridgeConfig.source || parent;
+
+    if (target) {
+      target.postMessage(message, targetOrigin);
+    }
   });
 
   window.addEventListener('message', function (e) {
@@ -32,6 +37,10 @@ IframeBridge.prototype.apply = function (req, res) {
       return;
     }
 
-    res(command);
+    var bridgeConfig = {
+      source: e.source
+    };
+
+    res(bridgeConfig, command);
   });
 };

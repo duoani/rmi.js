@@ -103,7 +103,10 @@ Invocation.prototype.invoke = function (targetId, api) {
   return new Promise(function (resolve, reject) {
     var callbackId = me.registerCallback(resolve, reject);
     // 通过中继器向对方发送请求
-    me.sendInvoke(targetId, callbackId, api, params);
+    var bridgeConfig = {
+      targetId: targetId
+    };
+    me.sendInvocation(bridgeConfig, callbackId, api, params);
   });
 };
 
@@ -112,21 +115,24 @@ Invocation.prototype.invoke = function (targetId, api) {
  * (约定：回复即调用对方的 handleCallback 接口)
  * @param {Array} command [callbackId:Number, api:String, params:Array]
  */
-Invocation.prototype.handleInvocation = function (command) {
+Invocation.prototype.handleInvocation = function (bridgeConfig, command) {
   var sourceId = command[0];
   var callbackId = command[1];
   var api = command[2];
   var params = command[3];
 
+  // 回路
+  bridgeConfig.targetId = sourceId;
+
   var me = this;
   if (this._api) {
     this._api.invoke(api, params).then(function (res) {
-      me.sendCallback(sourceId, callbackId, CallbackStatus.OK, res);
+      me.sendCallback(bridgeConfig, callbackId, CallbackStatus.OK, res);
     }, function (res) {
-      me.sendCallback(sourceId, callbackId, CallbackStatus.ERROR, res);
+      me.sendCallback(bridgeConfig, callbackId, CallbackStatus.ERROR, res);
     });
   } else {
-    me.sendCallback(sourceId, callbackId, CallbackStatus.ERROR, 'No invoker binded');
+    me.sendCallback(bridgeConfig, callbackId, CallbackStatus.ERROR, 'No invoker binded');
   }
 };
 
@@ -162,7 +168,7 @@ Invocation.prototype.handleCallback = function (results) {
  * @param {String} api API 方法名
  * @param {Array} params 传入 api 的方法列表
  */
-Invocation.prototype.sendInvoke = function (targetId, callbackId, api, params) {
+Invocation.prototype.sendInvocation = function (bridgeConfig, callbackId, api, params) {
   // 添加命令类型及调用来源
   var command = [
     CommandType.INVOCATION,
@@ -171,8 +177,7 @@ Invocation.prototype.sendInvoke = function (targetId, callbackId, api, params) {
     api,
     params
   ];
-  console.log('%s send an invocation to %s: %s', this._id, targetId, api);
-  this._send(targetId, command);
+  this._send(bridgeConfig, command);
 };
 
 /**
@@ -182,7 +187,7 @@ Invocation.prototype.sendInvoke = function (targetId, callbackId, api, params) {
  * @param {Number} callbackStatus
  * @param {Array} callbackData
  */
-Invocation.prototype.sendCallback = function (targetId, callbackId, callbackStatus, callbackData) {
+Invocation.prototype.sendCallback = function (bridgeConfig, callbackId, callbackStatus, callbackData) {
   // 添加命令类型及调用来源
   var command = [
     CommandType.CALLBACK,
@@ -192,14 +197,14 @@ Invocation.prototype.sendCallback = function (targetId, callbackId, callbackStat
     callbackData
   ];
 
-  this._send(targetId, command);
+  this._send(bridgeConfig, command);
 };
 
 /**
  * 发送消息到 iframe
  */
-Invocation.prototype._send = function (targetId, message) {
-  this._request(targetId, message);
+Invocation.prototype._send = function (bridgeConfig, message) {
+  this._request(bridgeConfig, message);
 };
 
 Invocation.prototype._pipeRequest = function (request) {
@@ -212,14 +217,14 @@ Invocation.prototype._pipeRequest = function (request) {
  * [commandType:Number, sourceId:Number, callbackId:Number, api:String, params:Array]
  * [commandType:Number, sourceId:Number, callbackId:Number, callbackStatus:Number, callbackData:Array]
  */
-Invocation.prototype._onResponse = function (command) {
+Invocation.prototype._onResponse = function (bridgeConfig, command) {
   var commandType = command.shift();
 
   if (commandType === CommandType.INVOCATION) {
-    this.handleInvocation(command);
+    this.handleInvocation(bridgeConfig, command);
 
   } else if (commandType === CommandType.CALLBACK) {
-    // The sourceId is unnecessary for callback, 
+    // The sourceId is unnecessary for callback
     command.shift();
     this.handleCallback(command);
   }
