@@ -1,23 +1,21 @@
-const {ipcRenderer} = require('electron')
+const { ipcRenderer } = require('electron')
 
-var IpcRendererBridge = function (options) {};
+var IpcRendererBridge = function (options) {}
 
 IpcRendererBridge.prototype.apply = function (req, res) {
-  var me = this;
-
   req(function (bridgeConfig, message) {
-    var target = null;
+    var target = null
     if (bridgeConfig.source) {
-      target = bridgeConfig.source;
+      target = bridgeConfig.source
     } else if (bridgeConfig.targetId) {
       // The id of iframe element is assumed to be the value of targetId.
-      target = ipcRenderer;
+      target = ipcRenderer
     }
 
     if (target) {
-      target.send('ipc-bridge-message', message);
+      target.send('ipc-bridge-message', message)
     }
-  });
+  })
 
   ipcRenderer.on('ipc-bridge-message', function (e, command) {
     /*
@@ -30,15 +28,15 @@ IpcRendererBridge.prototype.apply = function (req, res) {
     */
 
     if (!command || !command.length) {
-      return;
+      return
     }
 
     var bridgeConfig = {
       source: e.sender
-    };
+    }
 
-    res(bridgeConfig, command);
-  });
-};
+    res(bridgeConfig, command)
+  })
+}
 
-module.exports = IpcRendererBridge
+export default IpcRendererBridge

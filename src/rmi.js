@@ -1,94 +1,94 @@
-var toStr = Object.prototype.toString;
+var toStr = Object.prototype.toString
 
 var isObject = function (o) {
-  return toStr.call(o) === '[object Object]';
-};
+  return toStr.call(o) === '[object Object]'
+}
 
 var isString = function (o) {
-  return toStr.call(o) === '[object String]';
-};
+  return toStr.call(o) === '[object String]'
+}
 
 var isFunction = function (o) {
-  return toStr.call(o) === '[object Function]';
-};
+  return toStr.call(o) === '[object Function]'
+}
 
 var idGen = (function (id) {
   return function () {
-    return ++id;
-  };
-})(0);
+    return ++id
+  }
+})(0)
 
 var CommandType = {
   INVOCATION: 'INVOCATION', // 方法调用命令
-  CALLBACK: 'CALLBACK'    // 方法回调命令
-};
+  CALLBACK: 'CALLBACK' // 方法回调命令
+}
 
 var CallbackStatus = {
   'OK': 'OK',
   'ERROR': 'ERROR'
-};
+}
 
 function convertStatus (status) {
   switch (status) {
-  case CallbackStatus.OK:
-    return CallbackStatus.OK;
+    case CallbackStatus.OK:
+      return CallbackStatus.OK
 
-  case CallbackStatus.ERROR:
-    return CallbackStatus.ERROR;
+    case CallbackStatus.ERROR:
+      return CallbackStatus.ERROR
 
-  default:
-    throw new Error('CallbackContainer status string is not valid: ' + status);
+    default:
+      throw new Error('CallbackContainer status string is not valid: ' + status)
   }
-};
+}
 
 function CallbackContainer (resolve, reject) {
-  this.resolve = resolve;
-  this.reject = reject;
+  this.resolve = resolve
+  this.reject = reject
 }
 
 function Api (methodMap) {
-  this._map = methodMap || {};
+  this._map = methodMap || {}
 }
 
 Api.prototype.add = function (methodName, impl) {
-  this._map[methodName] = impl;
-};
+  this._map[methodName] = impl
+}
 
 Api.prototype.invoke = function (methodName, params) {
   if (!this._map[methodName]) {
-    return Promise.reject('Unable to find matching api ' + methodName);
+    return Promise.reject('Unable to find matching api ' + methodName)
   }
-  return this._map[methodName].apply(this._map, params);
-};
+  return this._map[methodName].apply(this._map, params)
+}
 
 function Invocation (id, api) {
-  this._id = id;
-  this._callbacks = {};
-  this._api = new Api(api);
-  this._request = null;
+  this._id = id
+  this._callbacks = {}
+  this._api = new Api(api)
+  this._request = null
 }
 
 // 添加 API
 Invocation.prototype.addApi = function (method, impl) {
   if (isObject(method)) {
     for (var k in method) {
-      isFunction(method[k]) && this._api.add(k, method[k]);
+      isFunction(method[k]) && this._api.add(k, method[k])
     }
   } else if (isString(method) && isFunction(impl)) {
-    this._api.add(method, impl);
+    this._api.add(method, impl)
   }
-  return this;
-};
+  return this
+}
 
 Invocation.prototype.pipe = function (bridge) {
-  bridge.apply(this._pipeRequest.bind(this), this._onResponse.bind(this));
-};
+  bridge.apply(this._pipeRequest.bind(this), this._onResponse.bind(this))
+}
 
 Invocation.prototype.registerCallback = function (resolve, reject) {
-  var id = idGen();
-  this._callbacks[id] = new CallbackContainer(resolve, reject);
-  return id;
-};
+  var id = idGen()
+  this._callbacks[id] = new CallbackContainer(resolve, reject)
+  return id
+}
 
 /**
  * 请求对方API
@@ -98,17 +98,17 @@ Invocation.prototype.registerCallback = function (resolve, reject) {
  */
 Invocation.prototype.invoke = function (targetId, api) {
   // api 参数列表
-  var params = Array.prototype.slice.call(arguments, 2);
-  var me = this;
+  var params = Array.prototype.slice.call(arguments, 2)
+  var me = this
   return new Promise(function (resolve, reject) {
-    var callbackId = me.registerCallback(resolve, reject);
+    var callbackId = me.registerCallback(resolve, reject)
     // 通过中继器向对方发送请求
     var bridgeConfig = {
       targetId: targetId
-    };
-    me.sendInvocation(bridgeConfig, callbackId, api, params);
-  });
-};
+    }
+    me.sendInvocation(bridgeConfig, callbackId, api, params)
+  })
+}
 
 /**
  * 处理对方的请求，并回复
@@ -116,50 +116,50 @@ Invocation.prototype.invoke = function (targetId, api) {
  * @param {Array} command [callbackId:Number, api:String, params:Array]
  */
 Invocation.prototype.handleInvocation = function (bridgeConfig, command) {
-  var sourceId = command[0];
-  var callbackId = command[1];
-  var api = command[2];
-  var params = command[3];
+  var sourceId = command[0]
+  var callbackId = command[1]
+  var api = command[2]
+  var params = command[3]
 
   // 回路
-  bridgeConfig.targetId = sourceId;
+  bridgeConfig.targetId = sourceId
 
-  var me = this;
+  var me = this
   if (this._api) {
     this._api.invoke(api, params).then(function (res) {
-      me.sendCallback(bridgeConfig, callbackId, CallbackStatus.OK, res);
+      me.sendCallback(bridgeConfig, callbackId, CallbackStatus.OK, res)
     }, function (res) {
-      me.sendCallback(bridgeConfig, callbackId, CallbackStatus.ERROR, res);
-    });
+      me.sendCallback(bridgeConfig, callbackId, CallbackStatus.ERROR, res)
+    })
   } else {
-    me.sendCallback(bridgeConfig, callbackId, CallbackStatus.ERROR, 'No invoker binded');
+    me.sendCallback(bridgeConfig, callbackId, CallbackStatus.ERROR, 'No invoker binded')
   }
-};
+}
 
 /**
  * 处理对方发来的回调信息
  * @param {Array} result [callbackId:Number, callbackStatus:Number, callbackData:Array]
  */
 Invocation.prototype.handleCallback = function (results) {
-  var callbackId = results[0];
-  var callbackStatus = convertStatus(results[1]);
-  var callbackData = results[2];
-  var callbackContainer = this._callbacks[callbackId];
+  var callbackId = results[0]
+  var callbackStatus = convertStatus(results[1])
+  var callbackData = results[2]
+  var callbackContainer = this._callbacks[callbackId]
 
   if (!callbackContainer) {
-    throw new Error('Unable to find matching callback object from calback id ' + callbackId);
+    throw new Error('Unable to find matching callback object from calback id ' + callbackId)
   }
 
   switch (callbackStatus) {
-  case CallbackStatus.OK:
-    callbackContainer.resolve(callbackData);
-    break;
-  case CallbackStatus.ERROR:
-    callbackContainer.reject(callbackData);
-    break;
+    case CallbackStatus.OK:
+      callbackContainer.resolve(callbackData)
+      break
+    case CallbackStatus.ERROR:
+      callbackContainer.reject(callbackData)
+      break
   }
-  delete this._callbacks[callbackId];
-};
+  delete this._callbacks[callbackId]
+}
 
 /**
  * 向对方发送执行的命令
@@ -176,9 +176,9 @@ Invocation.prototype.sendInvocation = function (bridgeConfig, callbackId, api, p
     callbackId,
     api,
     params
-  ];
-  this._send(bridgeConfig, command);
-};
+  ]
+  this._send(bridgeConfig, command)
+}
 
 /**
  * 向对方发送回调信息
@@ -195,21 +195,21 @@ Invocation.prototype.sendCallback = function (bridgeConfig, callbackId, callback
     callbackId,
     callbackStatus,
     callbackData
-  ];
+  ]
 
-  this._send(bridgeConfig, command);
-};
+  this._send(bridgeConfig, command)
+}
 
 /**
  * 发送消息到 iframe
  */
 Invocation.prototype._send = function (bridgeConfig, message) {
-  this._request(bridgeConfig, message);
-};
+  this._request(bridgeConfig, message)
+}
 
 Invocation.prototype._pipeRequest = function (request) {
-  this._request = request;
-};
+  this._request = request
+}
 
 /**
  * 将接收到的消息转接到对应的处理方法
@@ -218,20 +218,19 @@ Invocation.prototype._pipeRequest = function (request) {
  * [commandType:Number, sourceId:Number, callbackId:Number, callbackStatus:Number, callbackData:Array]
  */
 Invocation.prototype._onResponse = function (bridgeConfig, command) {
-  var commandType = command.shift();
+  var commandType = command.shift()
 
   if (commandType === CommandType.INVOCATION) {
-    this.handleInvocation(bridgeConfig, command);
-
+    this.handleInvocation(bridgeConfig, command)
   } else if (commandType === CommandType.CALLBACK) {
     // The sourceId is unnecessary for callback
-    command.shift();
-    this.handleCallback(command);
+    command.shift()
+    this.handleCallback(command)
   }
-};
+}
 
-var rmi = {
+export default {
   create: function (id, api) {
-    return new Invocation(id, api);
+    return new Invocation(id, api)
   }
-};
+}

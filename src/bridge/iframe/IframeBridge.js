@@ -1,26 +1,42 @@
+var extend = function (target, source) {
+  if (target == null || source == null) {
+    return target
+  }
+
+  var to = Object(target)
+
+  for (var k in source) {
+    if (Object.prototype.hasOwnProperty.call(source, k)) {
+      to[k] = source[k]
+    }
+  }
+
+  return to
+}
+
 var IframeBridge = function (options) {
-  this.options = Object.assign({
+  this.options = extend({
     targetOrigin: '*',
     sourceOrigin: null
-  }, options);
-};
+  }, options)
+}
 
 IframeBridge.prototype.apply = function (req, res) {
-  var targetOrigin = this.options.targetOrigin;
-  var sourceOrigin = this.options.sourceOrigin;
+  var targetOrigin = this.options.targetOrigin
+  var sourceOrigin = this.options.sourceOrigin
 
   req(function (bridgeConfig, message) {
-    var target = bridgeConfig.source || parent;
+    var target = bridgeConfig.source || parent
 
     if (target) {
-      target.postMessage(message, targetOrigin);
+      target.postMessage(message, targetOrigin)
     }
-  });
+  })
 
   window.addEventListener('message', function (e) {
     // filter the e.origin
     if (sourceOrigin && e.origin !== sourceOrigin) {
-      return;
+      return
     }
 
     /*
@@ -31,16 +47,18 @@ IframeBridge.prototype.apply = function (req, res) {
       from callback:
       [commandType:Number, sourceId:Number, callbackId:Number, callbackStatus:Number, callbackData:Array]
     */
-    var command = e.data;
+    var command = e.data
 
     if (!command || !command.length) {
-      return;
+      return
     }
 
     var bridgeConfig = {
       source: e.source
-    };
+    }
 
-    res(bridgeConfig, command);
-  });
-};
+    res(bridgeConfig, command)
+  })
+}
+
+export default IframeBridge

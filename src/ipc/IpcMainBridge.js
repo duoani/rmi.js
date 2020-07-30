@@ -1,34 +1,25 @@
-;(function(root, factory) {
-  if (typeof define === 'function' && define.amd) {
-    define([], factory);
-  } else if (typeof exports === 'object') {
-    module.exports = factory();
-  } else {
-    root.IpcMainBridge = factory();
-  }
-}(this, function() {
-const {ipcMain} = require('electron')
+const { ipcMain } = require('electron')
 
 var IpcMainBridge = function (browserWindow, options) {
-  this._win = browserWindow;
-};
+  this._win = browserWindow
+}
 
 IpcMainBridge.prototype.apply = function (req, res) {
-  var me = this;
+  var me = this
 
   req(function (bridgeConfig, message) {
-    var target = null;
+    var target = null
     if (bridgeConfig.source) {
-      target = bridgeConfig.source;
+      target = bridgeConfig.source
     } else if (bridgeConfig.targetId) {
       // The id of iframe element is assumed to be the value of targetId.
-      target = me._win.webContents;
+      target = me._win.webContents
     }
 
     if (target) {
-      target.send('ipc-bridge-message', message);
+      target.send('ipc-bridge-message', message)
     }
-  });
+  })
 
   ipcMain.on('ipc-bridge-message', function (e, command) {
     /*
@@ -41,18 +32,15 @@ IpcMainBridge.prototype.apply = function (req, res) {
     */
 
     if (!command || !command.length) {
-      return;
+      return
     }
 
     var bridgeConfig = {
       source: e.sender
-    };
+    }
 
-    res(bridgeConfig, command);
-  });
-};
+    res(bridgeConfig, command)
+  })
+}
 
-module.exports = IpcMainBridge
-
-return IpcMainBridge;
-}));
+export default IpcMainBridge

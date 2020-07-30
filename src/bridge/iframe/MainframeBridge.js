@@ -1,35 +1,51 @@
+var extend = function (target, source) {
+  if (target == null || source == null) {
+    return target
+  }
+
+  var to = Object(target)
+
+  for (var k in source) {
+    if (Object.prototype.hasOwnProperty.call(source, k)) {
+      to[k] = source[k]
+    }
+  }
+
+  return to
+}
+
 var MainframeBridge = function (options) {
-  this.options = Object.assign({
+  this.options = extend({
     targetOrigin: '*',
     sourceOrigin: null
-  }, options);
-};
+  }, options)
+}
 
 MainframeBridge.prototype.apply = function (req, res) {
-  var targetOrigin = this.options.targetOrigin;
-  var sourceOrigin = this.options.sourceOrigin;
+  var targetOrigin = this.options.targetOrigin
+  var sourceOrigin = this.options.sourceOrigin
 
   req(function (bridgeConfig, message) {
-    var target = null;
+    var target = null
     if (bridgeConfig.source) {
-      target = bridgeConfig.source;
+      target = bridgeConfig.source
     } else if (bridgeConfig.targetId) {
       // The id of iframe element is assumed to be the value of targetId.
-      var iframe = document.querySelector('#' + bridgeConfig.targetId);
+      var iframe = document.querySelector('#' + bridgeConfig.targetId)
       if (iframe) {
-        target = iframe.contentWindow;
+        target = iframe.contentWindow
       }
     }
 
     if (target) {
-      target.postMessage(message, targetOrigin);
+      target.postMessage(message, targetOrigin)
     }
-  });
+  })
 
   window.addEventListener('message', function (e) {
     // filter the e.origin
     if (sourceOrigin && e.origin !== sourceOrigin) {
-      return;
+      return
     }
 
     /*
@@ -40,16 +56,18 @@ MainframeBridge.prototype.apply = function (req, res) {
       from callback:
         [commandType:Number, sourceId:Number, callbackId:Number, callbackStatus:Number, callbackData:Array]
     */
-    var command = e.data;
+    var command = e.data
 
     if (!command || !command.length) {
-      return;
+      return
     }
 
     var bridgeConfig = {
       source: e.source
-    };
+    }
 
-    res(bridgeConfig, command);
-  });
-};
+    res(bridgeConfig, command)
+  })
+}
+
+export default MainframeBridge

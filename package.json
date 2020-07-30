@@ -1,15 +1,59 @@
 {
   "name": "rmi.js",
   "version": "1.0.0",
-  "description": "rmi.js",
-  "main": "Invocation.js",
-  "scripts": {
-  },
+  "description": "A simple & easy use messaging library for iframe",
   "author": "Duoani <duoani@126.com>",
-  "license": "MIT",
+  "keywords": [
+    "rmi",
+    "iframe",
+    "postMessage"
+  ],
+  "main": "dist/rmi.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "npm-run-all -s build:rmi build:bridge",
+    "build:rmi": "cross-env NODE_ENV=production node build/build-rmi.js",
+    "build:bridge": "cross-env NODE_ENV=production node build/build-bridge.js",
+    "lint": "eslint --fix --ext .js src"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/duoani/rmi.js.git"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.7.4",
+    "core-js": "^3.4.7"
+  },
   "devDependencies": {
-    "del": "^2.2.2",
-    "gulp": "^3.9.1",
-    "gulp-umd": "^0.2.0"
+    "@babel/core": "^7.7.4",
+    "@babel/plugin-syntax-dynamic-import": "^7.7.4",
+    "@babel/plugin-syntax-jsx": "^7.7.4",
+    "@babel/plugin-transform-runtime": "^7.7.4",
+    "@babel/preset-env": "^7.7.4",
+    "babel-eslint": "^10.0.3",
+    "babel-loader": "^8.0.6",
+    "chokidar": "^2.1.5",
+    "coveralls": "^3.0.2",
+    "cross-env": "^5.2.0",
+    "eslint": "^5.16.0",
+    "eslint-config-standard": "^12.0.0",
+    "eslint-friendly-formatter": "4.0.1",
+    "eslint-loader": "2.1.2",
+    "eslint-plugin-html": "^5.0.5",
+    "eslint-plugin-import": "^2.17.3",
+    "eslint-plugin-node": "^7.0.1",
+    "eslint-plugin-promise": "^4.1.1",
+    "eslint-plugin-standard": "^4.0.0",
+    "fuse.js": "^3.2.0",
+    "grob": "^1.0.0",
+    "npm-run-all": "^4.1.5",
+    "terser-webpack-plugin": "^1.2.3",
+    "url-loader": "^1.1.2",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.3.0",
+    "webpack-dev-server": "^3.2.1",
+    "webpack-merge": "^4.2.1"
   }
 }
